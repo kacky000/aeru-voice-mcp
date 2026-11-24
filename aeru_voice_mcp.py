@@ -47,10 +47,14 @@ class MisskeyError(RuntimeError):
         self.status = status
         self.payload = payload
         err = payload.get("error") if isinstance(payload, dict) else None
-        if err:
+        if isinstance(err, dict):
             msg = f"{err.get('code', 'ERROR')}: {err.get('message', '')}"
-        else:
+        elif isinstance(err, str):
+            msg = err
+        elif isinstance(payload, dict):
             msg = json.dumps(payload, ensure_ascii=False)[:300]
+        else:
+            msg = str(payload)[:300]
         super().__init__(f"HTTP {status} {msg}")
 
 
