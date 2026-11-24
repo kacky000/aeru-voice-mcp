@@ -37,6 +37,7 @@ def _cfg(name):
 WELCOME = "ミューズブリッジです。ミューズへのお願いを、どうぞお話しください。"
 WELCOME_REPROMPT = "たとえば、『最近の投稿を読んで、って頼んで』のように言ってください。"
 SENT = "ミューズに伝えました。返事はメールで届きます。『アレクサ、メールを読んで』と聞いてください。"
+SENT_NO_MAIL = "お願いは受け取りました。ただし、メール送信の設定がまだ終わっていないため、いまはミューズへ届いていません。設定が終わってから、もう一度お試しください。"
 EMPTY_QUERY = "すみません、お願いの内容が聞き取れませんでした。もう一度お話しください。"
 REPLY_GUIDE = "ミューズからの返事はメールで届きます。『アレクサ、メールを読んで』と言うと、読み上げてもらえます。"
 HELP = "ミューズへのお願いを、そのまま伝えます。『最近の投稿を読んで、って頼んで』のように言ってください。"
@@ -109,7 +110,12 @@ def lambda_handler(event, context=None):
             query = _slot_value(event, "query")
             if not query:
                 return _speech(EMPTY_QUERY, reprompt=WELCOME_REPROMPT, end_session=False)
-            send_bridge_email(query)
+            print(f"BRIDGE QUERY: {query}")  # visible in the skill's logs
+            try:
+                send_bridge_email(query)
+            except Exception as e:
+                print(f"BRIDGE MAIL FAILED: {e}")
+                return _speech(SENT_NO_MAIL)
             return _speech(SENT)
         if name == "CheckReplyIntent":
             return _speech(REPLY_GUIDE)
